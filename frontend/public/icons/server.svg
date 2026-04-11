@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Top rack unit -->
+  <rect x="8" y="8" width="48" height="14" rx="3" stroke="white" stroke-width="2.5" fill="none"/>
+  <circle cx="52" cy="15" r="2.5" fill="white"/>
+  <line x1="14" y1="12" x2="30" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="14" y1="18" x2="24" y2="18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <!-- Middle rack unit -->
+  <rect x="8" y="26" width="48" height="14" rx="3" stroke="white" stroke-width="2.5" fill="none"/>
+  <circle cx="52" cy="33" r="2.5" fill="white"/>
+  <line x1="14" y1="30" x2="30" y2="30" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="14" y1="36" x2="24" y2="36" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <!-- Bottom rack unit -->
+  <rect x="8" y="44" width="48" height="14" rx="3" stroke="white" stroke-width="2.5" fill="none"/>
+  <circle cx="52" cy="51" r="2.5" fill="white"/>
+  <line x1="14" y1="48" x2="30" y2="48" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="14" y1="54" x2="24" y2="54" stroke="white" stroke-width="2" stroke-linecap="round"/>
+</svg>

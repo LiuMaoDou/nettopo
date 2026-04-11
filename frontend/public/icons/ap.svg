@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Wifi arcs (outer, middle, inner) -->
+  <path d="M14 30 C14 18 22 10 32 10 C42 10 50 18 50 30"
+        stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M20 36 C20 28 25.4 22 32 22 C38.6 22 44 28 44 36"
+        stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M26 42 C26 38 28.7 35 32 35 C35.3 35 38 38 38 42"
+        stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Center dot -->
+  <circle cx="32" cy="50" r="4" fill="white"/>
+</svg>
