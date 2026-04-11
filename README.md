@@ -2,8 +2,6 @@
 
 A full-stack network topology visualization tool built with React + G6 v5 and FastAPI.
 
-![demo](docs/demo.png)
-
 ## Features
 
 - Interactive topology canvas — drag, zoom, search, highlight
