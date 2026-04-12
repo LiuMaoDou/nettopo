@@ -9,62 +9,44 @@ export type DeviceType =
 
 export type DeviceStatus = 'up' | 'down' | 'warning';
 export type LinkStatus = 'up' | 'down';
-export type LinkProtocol = 'ethernet' | 'fiber' | 'wifi';
-export type GroupType = 'vlan' | 'subnet' | 'site' | 'floor' | 'rack';
 export type LayoutType = 'force' | 'dagre' | 'circular' | 'radial' | 'combo';
-
-// ========== 接口 ==========
-export interface DeviceInterface {
-  name: string;            // e.g. "GigabitEthernet0/1"
-  ip?: string;
-  mac?: string;
-  speed?: number;          // Mbps
-  status: LinkStatus;
-}
 
 // ========== 设备节点 ==========
 export interface TopoNode {
   id: string;
-  label: string;
-  type: DeviceType;
-  ip: string;
-  mac?: string;
+  nodeName: string;
+  type?: DeviceType;        // 可选，默认 router
   vendor?: string;
   model?: string;
-  location?: string;
-  group?: string;          // 所属分组 ID
-  status: DeviceStatus;
-  interfaces: DeviceInterface[];
+  group?: string;           // 分组名称；未填时默认 "default"（不显示 combo）
+  status?: DeviceStatus;
   // G6 布局坐标（运行时填充）
   x?: number;
   y?: number;
 }
 
+// ========== 链路端点信息 ==========
+export interface EdgeEndpoint {
+  nodeName: string;        // 必填 — 对应 TopoNode.nodeName
+  interface?: string;
+  ipv4Address?: string;
+  ipv4Mask?: string;
+  ipv6Address?: string;
+  ipv6Mask?: string;
+  utilizationOut?: number; // 0-1, outbound from this endpoint
+  bandwidth?: number;      // Gbps
+  status?: LinkStatus;     // defaults to 'up'
+}
+
 // ========== 连接边 ==========
 export interface TopoEdge {
   id: string;
-  source: string;
-  target: string;
-  sourcePort: string;
-  targetPort: string;
-  bandwidth?: number;      // Mbps
-  utilizationOut?: number; // 0-1, outbound (source → target)
-  utilizationIn?: number;  // 0-1, inbound  (target → source)
-  protocol?: LinkProtocol;
-  status: LinkStatus;
-}
-
-// ========== 分组 ==========
-export interface TopoGroup {
-  id: string;
-  label: string;
-  type: GroupType;
-  parentId?: string;       // 嵌套分组
+  src: EdgeEndpoint;
+  dst: EdgeEndpoint;
 }
 
 // ========== 完整拓扑数据 ==========
 export interface TopologyData {
   nodes: TopoNode[];
   edges: TopoEdge[];
-  groups: TopoGroup[];
 }

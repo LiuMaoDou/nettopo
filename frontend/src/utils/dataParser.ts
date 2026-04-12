@@ -1,4 +1,14 @@
-import type { TopologyData, TopoNode, TopoEdge, DeviceType, DeviceStatus, LinkStatus, LinkProtocol } from '../types/topo';
+import type { TopologyData, TopoNode, TopoEdge, EdgeEndpoint, DeviceType, DeviceStatus, LinkStatus } from '../types/topo';
+
+const VALID_DEVICE_TYPES = new Set<string>(['router', 'switch', 'firewall', 'server', 'ap', 'endpoint']);
+
+/**
+ * Strip // line comments from a JSON string, preserving content inside quoted strings.
+ * Allows importing JSONC-style template files that contain // annotations.
+ */
+function stripJsonComments(str: string): string {
+  return str.replace(/("(?:[^"\\]|\\.)*")|\/\/[^\n]*/g, (_, quoted: string) => quoted ?? '');
+}
 
 /** Slugify a label into a safe ID: "Core Router 1" → "core-router-1" */
 function slugify(str: string, fallback: string): string {
@@ -10,10 +20,11 @@ function slugify(str: string, fallback: string): string {
 
 /**
  * Parse a JSON string into TopologyData.
- * `id` is optional in nodes/edges — auto-generated from label if absent.
+ * Required node fields: nodeName, type — throws on missing or invalid values.
+ * Optional fields use defaults: status → 'up'.
  */
 export function parseJSON(jsonStr: string): TopologyData {
-  const raw: unknown = JSON.parse(jsonStr);
+  const raw: unknown = JSON.parse(stripJsonComments(jsonStr));
   if (
     typeof raw !== 'object' ||
     raw === null ||
@@ -24,83 +35,114 @@ export function parseJSON(jsonStr: string): TopologyData {
   }
   const r = raw as Record<string, unknown[]>;
   const nodes = (r.nodes as Record<string, unknown>[]).map((n, idx) => {
-    const label = String(n.label ?? `Device-${idx}`);
-    return { ...n, id: n.id ?? slugify(label, `node-${idx}`), label } as TopoNode;
+    const pos = `nodes[${idx}]`;
+
+    if (!n.nodeName || typeof n.nodeName !== 'string' || !n.nodeName.trim()) {
+      throw new Error(`${pos}: 缺少必填字段 nodeName`);
+    }
+    if (n.type && !VALID_DEVICE_TYPES.has(n.type as string)) {
+      throw new Error(`${pos} (${n.nodeName}): 无效的 type，允许值: ${[...VALID_DEVICE_TYPES].join(', ')}`);
+    }
+
+    const nodeName = n.nodeName.trim();
+    return {
+      id:      n.id ?? slugify(nodeName, `node-${idx}`),
+      nodeName,
+      type:    (n.type as DeviceType | undefined) ?? 'router',
+      status:  (n.status as DeviceStatus | undefined) ?? 'up',
+      vendor:  (n.vendor as string | undefined) || undefined,
+      model:   (n.model  as string | undefined) || undefined,
+      group:   (n.group  as string | undefined) || 'default',
+    } satisfies TopoNode;
   });
-  const edges = (r.edges as Record<string, unknown>[]).map((e, idx) => ({
-    ...e,
-    id: e.id ?? `link-${idx}`,
-  })) as TopoEdge[];
-  return {
-    nodes,
-    edges,
-    groups: (r.groups as TopologyData['groups']) ?? [],
-  };
+
+  const edges = (r.edges as Record<string, unknown>[]).map((e, idx) => {
+    const pos = `edges[${idx}]`;
+    const src = e.src as Record<string, unknown> | undefined;
+    const dst = e.dst as Record<string, unknown> | undefined;
+    if (!src?.nodeName) throw new Error(`${pos}: 缺少必填字段 src.nodeName`);
+    if (!dst?.nodeName) throw new Error(`${pos}: 缺少必填字段 dst.nodeName`);
+    return { ...e, id: e.id ?? `link-${idx}` };
+  }) as TopoEdge[];
+
+  return { nodes, edges };
 }
 
 // ===== CSV 导入 =====
 
 /**
  * Parse a devices CSV string into an array of TopoNode.
- * `id` column is optional — auto-generated from label if absent.
- * Expected columns: label/hostname, type, ip, mac, vendor, model, location, group/vlan, status
+ * Required columns: nodeName, type — throws on missing or invalid values.
+ * Optional columns: vendor, model, group, status (default: 'up').
  */
 export function parseDevicesCSV(csv: string): TopoNode[] {
   const lines = csv.trim().split('\n');
   if (lines.length < 2) return [];
   const headers = lines[0].split(',').map((h) => h.trim());
   return lines.slice(1).map((line, idx) => {
+    const pos = `行 ${idx + 2}`;
     const vals = line.split(',').map((v) => v.trim());
     const row: Record<string, string> = {};
     headers.forEach((h, i) => { row[h] = vals[i] ?? ''; });
 
-    const label = row.label ?? row.hostname ?? `Device-${idx}`;
+    const nodeName = (row.nodeName ?? row.hostname ?? '').trim();
+    if (!nodeName) throw new Error(`${pos}: 缺少必填字段 nodeName`);
+
+    const type = row.type ?? '';
+    if (type && !VALID_DEVICE_TYPES.has(type)) {
+      throw new Error(`${pos} (${nodeName}): 无效的 type，允许值: ${[...VALID_DEVICE_TYPES].join(', ')}`);
+    }
+
     return {
-      id:       row.id || slugify(label, `node-${idx}`),
-      label,
-      type:     (row.type as DeviceType) || 'endpoint',
-      ip:       row.ip ?? '',
-      mac:      row.mac || undefined,
-      vendor:   row.vendor || undefined,
-      model:    row.model || undefined,
-      location: row.location || undefined,
-      group:    row.group ?? row.vlan ?? undefined,
-      status:   (row.status as DeviceStatus) || 'up',
-      interfaces: [],
-    };
+      id:     row.id || slugify(nodeName, `node-${idx}`),
+      nodeName,
+      type:   (type as DeviceType | undefined) || 'router',
+      status: ((row.status as DeviceStatus) || undefined) ?? 'up',
+      vendor: row.vendor || undefined,
+      model:  row.model  || undefined,
+      group:  row.group || row.vlan || 'default',
+    } satisfies TopoNode;
   });
 }
 
 /**
  * Parse a links CSV string into an array of TopoEdge.
  * `id` column is optional — auto-generated sequentially if absent.
- * `source`/`target` reference device labels (same as auto-generated node IDs).
- * Expected columns: source, target, sourcePort, targetPort, bandwidth,
- *   utilizationOut, utilizationIn, protocol, status
+ * Required columns: srcNodeName, dstNodeName
+ * Optional columns (per endpoint): interface, ipv4Address, ipv4Mask, ipv6Address, ipv6Mask,
+ *   utilizationOut, bandwidth, status
  */
 export function parseLinksCSV(csv: string): TopoEdge[] {
   const lines = csv.trim().split('\n');
   if (lines.length < 2) return [];
   const headers = lines[0].split(',').map((h) => h.trim());
   return lines.slice(1).map((line, idx) => {
+    const pos = `行 ${idx + 2}`;
     const vals = line.split(',').map((v) => v.trim());
     const row: Record<string, string> = {};
     headers.forEach((h, i) => { row[h] = vals[i] ?? ''; });
 
-    // source/target may be labels — slugify to match auto-generated node IDs
-    const src = row.source ?? '';
-    const dst = row.target ?? '';
+    const srcNodeName = row.srcNodeName?.trim();
+    const dstNodeName = row.dstNodeName?.trim();
+    if (!srcNodeName) throw new Error(`${pos}: 缺少必填字段 srcNodeName`);
+    if (!dstNodeName) throw new Error(`${pos}: 缺少必填字段 dstNodeName`);
+
+    const parseEndpoint = (prefix: 'src' | 'dst', nodeName: string): EdgeEndpoint => ({
+      nodeName,
+      interface:      row[`${prefix}Interface`]      || undefined,
+      ipv4Address:    row[`${prefix}Ipv4Address`]    || undefined,
+      ipv4Mask:       row[`${prefix}Ipv4Mask`]       || undefined,
+      ipv6Address:    row[`${prefix}Ipv6Address`]    || undefined,
+      ipv6Mask:       row[`${prefix}Ipv6Mask`]       || undefined,
+      utilizationOut: row[`${prefix}UtilizationOut`] ? Number(row[`${prefix}UtilizationOut`]) : undefined,
+      bandwidth:      row[`${prefix}Bandwidth`]      ? Number(row[`${prefix}Bandwidth`])      : undefined,
+      status:         (row[`${prefix}Status`] as LinkStatus) || undefined,
+    });
+
     return {
-      id:             row.id || `link-${idx}`,
-      source:         slugify(src, src),
-      target:         slugify(dst, dst),
-      sourcePort:     row.sourcePort ?? row.source_port ?? '',
-      targetPort:     row.targetPort ?? row.target_port ?? '',
-      bandwidth:      row.bandwidth      ? Number(row.bandwidth)      : undefined,
-      utilizationOut: row.utilizationOut ? Number(row.utilizationOut) : undefined,
-      utilizationIn:  row.utilizationIn  ? Number(row.utilizationIn)  : undefined,
-      protocol:       (row.protocol as LinkProtocol) || 'ethernet',
-      status:         (row.status as LinkStatus) || 'up',
+      id:  row.id || `link-${idx}`,
+      src: parseEndpoint('src', srcNodeName),
+      dst: parseEndpoint('dst', dstNodeName),
     };
   });
 }

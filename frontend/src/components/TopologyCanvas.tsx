@@ -15,8 +15,8 @@ const CONTAINER_ID = 'topo-canvas';
  */
 export default function TopologyCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { graphRef, initGraph, loadData, changeLayout, applySearch } = useGraph(CONTAINER_ID);
-  const { topologyData, currentLayout, searchQuery, setSelectedNode } = useTopoStore();
+  const { graphRef, initGraph, loadData, changeLayout, applySearch, setPortLabelsVisible } = useGraph(CONTAINER_ID);
+  const { topologyData, currentLayout, searchQuery, showPortLabels, setSelectedNode } = useTopoStore();
 
   // Keep a stable ref to topologyData so event handlers always see the latest value
   const dataRef = useRef(topologyData);
@@ -61,6 +61,13 @@ export default function TopologyCanvas() {
       applySearch(searchQuery, topologyData);
     }
   }, [searchQuery, topologyData, applySearch, graphRef]);
+
+  // ── Toggle port label visibility ───────────────────────────────────────────
+  useEffect(() => {
+    if (graphRef.current) {
+      setPortLabelsVisible(showPortLabels);
+    }
+  }, [showPortLabels, setPortLabelsVisible, graphRef]);
 
   return (
     <div

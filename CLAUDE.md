@@ -36,23 +36,47 @@ cd backend && uv venv && uv pip install -r requirements.txt
 
 All topology state lives in **`frontend/src/store/topoStore.ts`** (Zustand). Components read from the store and the G6 canvas reacts to store changes via `useEffect` hooks in `TopologyCanvas.tsx`.
 
-The G6 `Graph` instance is managed by the **`useGraph`** hook (`hooks/useGraph.ts`) which owns the ref and exposes `initGraph`, `loadData`, `changeLayout`, and `applySearch`. Because React hooks don't share state between component instances, the active graph is also registered in **`store/graphRegistry.ts`** (module-level singleton) so that other components (e.g. `Toolbar`) can access it without prop-drilling.
+The G6 `Graph` instance is managed by the **`useGraph`** hook (`hooks/useGraph.ts`) which owns the ref and exposes `initGraph`, `loadData`, `changeLayout`, `applySearch`, and `setPortLabelsVisible`. Because React hooks don't share state between component instances, the active graph is also registered in **`store/graphRegistry.ts`** (module-level singleton) so that other components (e.g. `Toolbar`) can access it without prop-drilling.
 
 ### Frontend structure
 
 ```
-types/topo.ts           — canonical TypeScript types (TopoNode, TopoEdge, TopoGroup, TopologyData)
-store/topoStore.ts      — Zustand store: topologyData, currentLayout, selectedNode, searchQuery
+types/topo.ts           — canonical TypeScript types (TopoNode, TopoEdge, EdgeEndpoint, TopologyData)
+store/topoStore.ts      — Zustand store: topologyData, currentLayout, selectedNode, searchQuery, showPortLabels
 store/graphRegistry.ts  — module singleton exposing get/set for the active G6 Graph instance
-hooks/useGraph.ts       — G6 lifecycle: init, loadData (setData+render), changeLayout, applySearch
+hooks/useGraph.ts       — G6 lifecycle: init, loadData (setData+render), changeLayout, applySearch, setPortLabelsVisible
 hooks/useWebSocket.ts   — WebSocket with auto-reconnect; patches topologyData on node_status messages
 graph/PortLabelEdge.ts  — custom G6 edge extending Line; draws port+utilization labels at each endpoint
 layouts/index.ts        — getLayoutConfig(LayoutType) → G6 layout config; cast to LayoutOptions at call site
 utils/mockData.ts       — generateMockTopology('small'|'medium'|'large') produces 3-tier network topology
 utils/dataParser.ts     — parseJSON, parseDevicesCSV, parseLinksCSV; auto-generates IDs from labels
-utils/downloadTemplate.ts — downloadTemplateJSON/CSV helpers; TEMPLATE object is the canonical example topology
+utils/downloadTemplate.ts — downloadTemplateJSON/CSV helpers; TEMPLATE_JSONC is the canonical example topology
 utils/pathfinder.ts     — BFS findShortestPath(nodes, edges, sourceId, targetId) → string[] | null
 utils/exportGraph.ts    — exportToPNG/SVG/PDF wrapping graph.toDataURL
+```
+
+### Core data types (`types/topo.ts`)
+
+```typescript
+interface EdgeEndpoint {
+  nodeName: string;        // required — references TopoNode.nodeName
+  interface?: string;
+  ipv4Address?: string; ipv4Mask?: string;
+  ipv6Address?: string; ipv6Mask?: string;
+  utilizationOut?: number; // 0–1, outbound from this endpoint
+  bandwidth?: number;      // Gbps
+  status?: 'up' | 'down';
+}
+
+interface TopoNode {
+  id: string; nodeName: string;
+  type?: DeviceType;   // default: 'router'
+  vendor?: string; model?: string;
+  group?: string;      // default: 'default' (no combo shown)
+  status?: 'up' | 'down' | 'warning';
+}
+
+interface TopoEdge { id: string; src: EdgeEndpoint; dst: EdgeEndpoint; }
 ```
 
 ### Key G6 v5 patterns
@@ -69,15 +93,33 @@ utils/exportGraph.ts    — exportToPNG/SVG/PDF wrapping graph.toDataURL
 ### Edge label layout
 
 Each edge renders three labels:
-- **22% from source**: `sourcePort(utilizationOut%)` — e.g. `Gi0/1(71%)`
+- **22% from source**: `interface(utilizationOut%)` — e.g. `Gi0/1(71%)`; falls back to just `interface` or just `71%` if either is absent
 - **Center (50%)**: bandwidth — e.g. `10G`
-- **78% from source**: `targetPort(utilizationIn%)` — e.g. `ge-0/0/0(60%)`
+- **78% from source**: `interface(utilizationOut%)` for the destination endpoint
 
-`utilizationOut` is outbound from the source node; `utilizationIn` is inbound at the target node (reverse direction). Edge color reflects the higher of the two values (orange >80%, yellow >50%).
+`utilizationOut` on `src` is outbound from the source node; `utilizationOut` on `dst` is outbound from the destination node (i.e. inbound at the source). Edge color reflects `Math.max(src.utilizationOut, dst.utilizationOut)`: red if either endpoint is down, orange >80%, yellow >50%, gray otherwise.
+
+Port label visibility is toggled via `showPortLabels` in the store / `setPortLabelsVisible` in `useGraph`. Zoom-based LOD runs independently on top of this flag.
+
+### LOD (Level of Detail) thresholds (`useGraph.ts`)
+
+| Node count | Effect |
+|---|---|
+| > 300 | Suppress edge port labels (start/end) |
+| > 700 | Also suppress edge center bandwidth labels |
+| > 900 | Also suppress labels on leaf nodes (endpoint/server) |
+| zoom < 0.5 | Hide node labels |
+| zoom < 0.65 | Hide edge labels |
+
+Combos are disabled above 500 nodes (layout breaks at scale).
 
 ### ID generation
 
-Node IDs are auto-generated by slugifying the label (`Core-Router-1` → `core-router-1`). Edge IDs are sequential (`link-0`, `link-1`, …). Neither `id` field is required in CSV imports. In JSON imports `id` is optional; edge `source`/`target` must match the slugified node labels. Groups still require explicit `id` fields since they are referenced by `TopoNode.group`.
+Node IDs are auto-generated by slugifying `nodeName` (`Core-Router-1` → `core-router-1`). Edge IDs are sequential (`link-0`, `link-1`, …). Neither `id` field is required in CSV or JSON imports. In `loadData()`, a `nodeNameToId` map is built before processing edges — it keys both the raw `nodeName` and its slugified form, so sample data with sequential IDs (`node-0`) resolves correctly against human-readable endpoint names.
+
+### Combos (grouping)
+
+Groups are auto-derived in `loadData()` from unique non-`'default'` values of `TopoNode.group`. There is no separate groups array — just set `group` on nodes and combos appear automatically. Nodes with `group: 'default'` or no group are not assigned a combo.
 
 ### Backend structure
 
@@ -90,7 +132,7 @@ app/api/topology.py    — REST router at /api/topology: GET /, POST /import, GE
 app/api/websocket.py   — WebSocket at /ws/topology; ConnectionManager.broadcast(dict) pushes to all clients
 ```
 
-**Backend field name mismatch:** `TopoNode.group` → `Device.group_id`; `sourcePort`/`targetPort` in `LinkIn` → `source_port`/`target_port` in `Link`. The backend schema does not yet have `utilizationOut`/`utilizationIn` — only the frontend and import templates use these fields.
+**Backend schema is out of sync with the frontend.** The backend (`DeviceIn`, `LinkIn`) still uses the old field names: `label` (not `nodeName`), `ip`, `mac`, `sourcePort`/`targetPort`, `utilization`, `protocol`, and a top-level `groups` array. The frontend's `EdgeEndpoint` structure (`src`/`dst` with nested fields) is not yet reflected in the backend. The frontend does not currently call the backend REST API — all state is client-side.
 
 ### Device icons
 
@@ -98,4 +140,4 @@ SVG files in `frontend/public/icons/` are served statically. `ICON_MAP` in `useG
 
 ### Sample data
 
-`data/sample-small.json` (~30 nodes) and `data/sample-medium.json` (~200 nodes) can be imported via the toolbar's "导入" button or `POST /api/topology/import`.
+`data/sample-small.json` (~30 nodes) and `data/sample-medium.json` (~200 nodes) can be imported via the toolbar's "导入" button. Both files use the current edge structure: `{ id, src: { nodeName, bandwidth, status, utilizationOut }, dst: { ... } }`.

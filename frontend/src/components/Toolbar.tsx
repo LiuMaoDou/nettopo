@@ -18,7 +18,7 @@ const DEMO_OPTIONS: { label: string; scale: 'small' | 'medium' | 'large' }[] = [
 ];
 
 export default function Toolbar() {
-  const { currentLayout, setLayout, loadMockData, setTopologyData } = useTopoStore();
+  const { currentLayout, setLayout, loadMockData, setTopologyData, showPortLabels, togglePortLabels } = useTopoStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const demoRef = useRef<HTMLDivElement>(null);
   const [demoOpen, setDemoOpen] = useState(false);
@@ -171,6 +171,19 @@ export default function Toolbar() {
         className="hidden"
         onChange={handleFileImport}
       />
+
+      {/* Toggle port labels */}
+      <button
+        onClick={togglePortLabels}
+        title={showPortLabels ? '隐藏接口信息' : '显示接口信息'}
+        className={`px-3 py-1.5 rounded text-sm transition-colors ${
+          showPortLabels
+            ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+        }`}
+      >
+        接口信息
+      </button>
 
       {/* Export PNG */}
       <button

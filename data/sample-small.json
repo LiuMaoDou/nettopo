@@ -2,665 +2,710 @@
   "nodes": [
     {
       "id": "node-0",
-      "label": "Core-1",
+      "nodeName": "Core-1",
       "type": "router",
-      "ip": "10.0.0.1",
       "status": "up",
-      "group": "g-core",
-      "interfaces": []
+      "group": "g-core"
     },
     {
       "id": "node-1",
-      "label": "Core-2",
+      "nodeName": "Core-2",
       "type": "router",
-      "ip": "10.0.0.2",
       "status": "up",
-      "group": "g-core",
-      "interfaces": []
+      "group": "g-core"
     },
     {
       "id": "node-2",
-      "label": "Dist-SW-1",
+      "nodeName": "Dist-SW-1",
       "type": "switch",
-      "ip": "10.1.0.1",
       "status": "up",
-      "group": "g-dist-0",
-      "interfaces": []
+      "group": "g-dist-0"
     },
     {
       "id": "node-3",
-      "label": "Dist-SW-2",
+      "nodeName": "Dist-SW-2",
       "type": "switch",
-      "ip": "10.1.1.1",
       "status": "up",
-      "group": "g-dist-1",
-      "interfaces": []
+      "group": "g-dist-1"
     },
     {
       "id": "node-4",
-      "label": "Dist-SW-3",
+      "nodeName": "Dist-SW-3",
       "type": "switch",
-      "ip": "10.1.2.1",
       "status": "up",
-      "group": "g-dist-2",
-      "interfaces": []
+      "group": "g-dist-2"
     },
     {
       "id": "node-5",
-      "label": "Dist-SW-4",
+      "nodeName": "Dist-SW-4",
       "type": "switch",
-      "ip": "10.1.3.1",
       "status": "up",
-      "group": "g-dist-3",
-      "interfaces": []
+      "group": "g-dist-3"
     },
     {
       "id": "node-6",
-      "label": "Access-SW-1",
+      "nodeName": "Access-SW-1",
       "type": "switch",
-      "ip": "10.1.0.10",
       "status": "up",
-      "group": "g-dist-0",
-      "interfaces": []
+      "group": "g-dist-0"
     },
     {
       "id": "node-7",
-      "label": "Host-0-1",
+      "nodeName": "Host-0-1",
       "type": "endpoint",
-      "ip": "10.1.0.100",
       "status": "up",
-      "group": "g-dist-0",
-      "interfaces": []
+      "group": "g-dist-0"
     },
     {
       "id": "node-8",
-      "label": "Host-0-2",
+      "nodeName": "Host-0-2",
       "type": "endpoint",
-      "ip": "10.1.0.101",
       "status": "up",
-      "group": "g-dist-0",
-      "interfaces": []
+      "group": "g-dist-0"
     },
     {
       "id": "node-9",
-      "label": "Access-SW-2",
+      "nodeName": "Access-SW-2",
       "type": "switch",
-      "ip": "10.1.0.11",
       "status": "up",
-      "group": "g-dist-0",
-      "interfaces": []
+      "group": "g-dist-0"
     },
     {
       "id": "node-10",
-      "label": "Host-1-1",
+      "nodeName": "Host-1-1",
       "type": "endpoint",
-      "ip": "10.1.0.120",
       "status": "up",
-      "group": "g-dist-0",
-      "interfaces": []
+      "group": "g-dist-0"
     },
     {
       "id": "node-11",
-      "label": "Host-1-2",
+      "nodeName": "Host-1-2",
       "type": "server",
-      "ip": "10.1.0.121",
       "status": "up",
-      "group": "g-dist-0",
-      "interfaces": []
+      "group": "g-dist-0"
     },
     {
       "id": "node-12",
-      "label": "Access-SW-3",
+      "nodeName": "Access-SW-3",
       "type": "switch",
-      "ip": "10.1.1.10",
       "status": "up",
-      "group": "g-dist-1",
-      "interfaces": []
+      "group": "g-dist-1"
     },
     {
       "id": "node-13",
-      "label": "Host-2-1",
+      "nodeName": "Host-2-1",
       "type": "server",
-      "ip": "10.1.1.100",
       "status": "up",
-      "group": "g-dist-1",
-      "interfaces": []
+      "group": "g-dist-1"
     },
     {
       "id": "node-14",
-      "label": "Host-2-2",
+      "nodeName": "Host-2-2",
       "type": "endpoint",
-      "ip": "10.1.1.101",
       "status": "up",
-      "group": "g-dist-1",
-      "interfaces": []
+      "group": "g-dist-1"
     },
     {
       "id": "node-15",
-      "label": "Access-SW-4",
+      "nodeName": "Access-SW-4",
       "type": "switch",
-      "ip": "10.1.1.11",
       "status": "up",
-      "group": "g-dist-1",
-      "interfaces": []
+      "group": "g-dist-1"
     },
     {
       "id": "node-16",
-      "label": "Host-3-1",
+      "nodeName": "Host-3-1",
       "type": "server",
-      "ip": "10.1.1.120",
       "status": "up",
-      "group": "g-dist-1",
-      "interfaces": []
+      "group": "g-dist-1"
     },
     {
       "id": "node-17",
-      "label": "Host-3-2",
+      "nodeName": "Host-3-2",
       "type": "endpoint",
-      "ip": "10.1.1.121",
       "status": "up",
-      "group": "g-dist-1",
-      "interfaces": []
+      "group": "g-dist-1"
     },
     {
       "id": "node-18",
-      "label": "Access-SW-5",
+      "nodeName": "Access-SW-5",
       "type": "switch",
-      "ip": "10.1.2.10",
       "status": "up",
-      "group": "g-dist-2",
-      "interfaces": []
+      "group": "g-dist-2"
     },
     {
       "id": "node-19",
-      "label": "Host-4-1",
+      "nodeName": "Host-4-1",
       "type": "endpoint",
-      "ip": "10.1.2.100",
       "status": "up",
-      "group": "g-dist-2",
-      "interfaces": []
+      "group": "g-dist-2"
     },
     {
       "id": "node-20",
-      "label": "Host-4-2",
+      "nodeName": "Host-4-2",
       "type": "endpoint",
-      "ip": "10.1.2.101",
       "status": "up",
-      "group": "g-dist-2",
-      "interfaces": []
+      "group": "g-dist-2"
     },
     {
       "id": "node-21",
-      "label": "Access-SW-6",
+      "nodeName": "Access-SW-6",
       "type": "switch",
-      "ip": "10.1.2.11",
       "status": "up",
-      "group": "g-dist-2",
-      "interfaces": []
+      "group": "g-dist-2"
     },
     {
       "id": "node-22",
-      "label": "Host-5-1",
+      "nodeName": "Host-5-1",
       "type": "endpoint",
-      "ip": "10.1.2.120",
       "status": "up",
-      "group": "g-dist-2",
-      "interfaces": []
+      "group": "g-dist-2"
     },
     {
       "id": "node-23",
-      "label": "Host-5-2",
+      "nodeName": "Host-5-2",
       "type": "server",
-      "ip": "10.1.2.121",
       "status": "up",
-      "group": "g-dist-2",
-      "interfaces": []
+      "group": "g-dist-2"
     },
     {
       "id": "node-24",
-      "label": "Access-SW-7",
+      "nodeName": "Access-SW-7",
       "type": "switch",
-      "ip": "10.1.3.10",
       "status": "up",
-      "group": "g-dist-3",
-      "interfaces": []
+      "group": "g-dist-3"
     },
     {
       "id": "node-25",
-      "label": "Host-6-1",
+      "nodeName": "Host-6-1",
       "type": "endpoint",
-      "ip": "10.1.3.100",
       "status": "up",
-      "group": "g-dist-3",
-      "interfaces": []
+      "group": "g-dist-3"
     },
     {
       "id": "node-26",
-      "label": "Host-6-2",
+      "nodeName": "Host-6-2",
       "type": "endpoint",
-      "ip": "10.1.3.101",
       "status": "up",
-      "group": "g-dist-3",
-      "interfaces": []
+      "group": "g-dist-3"
     },
     {
       "id": "node-27",
-      "label": "Access-SW-8",
+      "nodeName": "Access-SW-8",
       "type": "switch",
-      "ip": "10.1.3.11",
       "status": "up",
-      "group": "g-dist-3",
-      "interfaces": []
+      "group": "g-dist-3"
     },
     {
       "id": "node-28",
-      "label": "Host-7-1",
+      "nodeName": "Host-7-1",
       "type": "server",
-      "ip": "10.1.3.120",
       "status": "up",
-      "group": "g-dist-3",
-      "interfaces": []
+      "group": "g-dist-3"
     },
     {
       "id": "node-29",
-      "label": "Host-7-2",
+      "nodeName": "Host-7-2",
       "type": "server",
-      "ip": "10.1.3.121",
       "status": "up",
-      "group": "g-dist-3",
-      "interfaces": []
+      "group": "g-dist-3"
     }
   ],
   "edges": [
     {
       "id": "edge-0",
-      "source": "node-0",
-      "target": "node-1",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 100000,
-      "utilization": 0.6761520463840082,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Core-1",
+        "bandwidth": 100.0,
+        "status": "up",
+        "utilizationOut": 0.6394
+      },
+      "dst": {
+        "nodeName": "Core-2",
+        "bandwidth": 100.0,
+        "status": "up",
+        "utilizationOut": 0.025
+      }
     },
     {
       "id": "edge-1",
-      "source": "node-2",
-      "target": "node-0",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 40000,
-      "utilization": 0.3470332906279918,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Dist-SW-1",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.275
+      },
+      "dst": {
+        "nodeName": "Core-1",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.2232
+      }
     },
     {
       "id": "edge-2",
-      "source": "node-2",
-      "target": "node-1",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 40000,
-      "utilization": 0.460644589787249,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Dist-SW-1",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.7365
+      },
+      "dst": {
+        "nodeName": "Core-2",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.6767
+      }
     },
     {
       "id": "edge-3",
-      "source": "node-3",
-      "target": "node-0",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 40000,
-      "utilization": 0.4190737792730346,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Dist-SW-2",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.8922
+      },
+      "dst": {
+        "nodeName": "Core-1",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.0869
+      }
     },
     {
       "id": "edge-4",
-      "source": "node-3",
-      "target": "node-1",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 40000,
-      "utilization": 0.9728781155592322,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Dist-SW-2",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.4219
+      },
+      "dst": {
+        "nodeName": "Core-2",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.0298
+      }
     },
     {
       "id": "edge-5",
-      "source": "node-4",
-      "target": "node-0",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 40000,
-      "utilization": 0.5919060346087652,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Dist-SW-3",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.2186
+      },
+      "dst": {
+        "nodeName": "Core-1",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.5054
+      }
     },
     {
       "id": "edge-6",
-      "source": "node-4",
-      "target": "node-1",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 40000,
-      "utilization": 0.01020578011942741,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Dist-SW-3",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.0265
+      },
+      "dst": {
+        "nodeName": "Core-2",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.1988
+      }
     },
     {
       "id": "edge-7",
-      "source": "node-5",
-      "target": "node-0",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 40000,
-      "utilization": 0.29399387804588417,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Dist-SW-4",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.6499
+      },
+      "dst": {
+        "nodeName": "Core-1",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.5449
+      }
     },
     {
       "id": "edge-8",
-      "source": "node-5",
-      "target": "node-1",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 40000,
-      "utilization": 0.4168618980852311,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Dist-SW-4",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.2204
+      },
+      "dst": {
+        "nodeName": "Core-2",
+        "bandwidth": 40.0,
+        "status": "up",
+        "utilizationOut": 0.5893
+      }
     },
     {
       "id": "edge-9",
-      "source": "node-6",
-      "target": "node-2",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 10000,
-      "utilization": 0.4519904132884661,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Access-SW-1",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.8094
+      },
+      "dst": {
+        "nodeName": "Dist-SW-1",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.0065
+      }
     },
     {
       "id": "edge-10",
-      "source": "node-7",
-      "target": "node-6",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.3228305997218268,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-0-1",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.8058
+      },
+      "dst": {
+        "nodeName": "Access-SW-1",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.6981
+      }
     },
     {
       "id": "edge-11",
-      "source": "node-8",
-      "target": "node-6",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.02087890153508376,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-0-2",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.3403
+      },
+      "dst": {
+        "nodeName": "Access-SW-1",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.1555
+      }
     },
     {
       "id": "edge-12",
-      "source": "node-9",
-      "target": "node-2",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 10000,
-      "utilization": 0.7492336623615964,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Access-SW-2",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.9572
+      },
+      "dst": {
+        "nodeName": "Dist-SW-1",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.3366
+      }
     },
     {
       "id": "edge-13",
-      "source": "node-10",
-      "target": "node-9",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.524464284266261,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-1-1",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.0927
+      },
+      "dst": {
+        "nodeName": "Access-SW-2",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.0967
+      }
     },
     {
       "id": "edge-14",
-      "source": "node-11",
-      "target": "node-9",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.39063858106722993,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-1-2",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.8475
+      },
+      "dst": {
+        "nodeName": "Access-SW-2",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.6037
+      }
     },
     {
       "id": "edge-15",
-      "source": "node-12",
-      "target": "node-3",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 10000,
-      "utilization": 0.9838558920132161,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Access-SW-3",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.8071
+      },
+      "dst": {
+        "nodeName": "Dist-SW-2",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.7297
+      }
     },
     {
       "id": "edge-16",
-      "source": "node-13",
-      "target": "node-12",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.5896113592010426,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-2-1",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.5362
+      },
+      "dst": {
+        "nodeName": "Access-SW-3",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.9731
+      }
     },
     {
       "id": "edge-17",
-      "source": "node-14",
-      "target": "node-12",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.8408250915706634,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-2-2",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.3785
+      },
+      "dst": {
+        "nodeName": "Access-SW-3",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.552
+      }
     },
     {
       "id": "edge-18",
-      "source": "node-15",
-      "target": "node-3",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 10000,
-      "utilization": 0.9180345395124448,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Access-SW-4",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.8294
+      },
+      "dst": {
+        "nodeName": "Dist-SW-2",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.6185
+      }
     },
     {
       "id": "edge-19",
-      "source": "node-16",
-      "target": "node-15",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.9513555671957492,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-3-1",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.8617
+      },
+      "dst": {
+        "nodeName": "Access-SW-4",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.5774
+      }
     },
     {
       "id": "edge-20",
-      "source": "node-17",
-      "target": "node-15",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.5821708669788601,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-3-2",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.7046
+      },
+      "dst": {
+        "nodeName": "Access-SW-4",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.0458
+      }
     },
     {
       "id": "edge-21",
-      "source": "node-18",
-      "target": "node-4",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 10000,
-      "utilization": 0.9268863418855835,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Access-SW-5",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.2279
+      },
+      "dst": {
+        "nodeName": "Dist-SW-3",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.2894
+      }
     },
     {
       "id": "edge-22",
-      "source": "node-19",
-      "target": "node-18",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.37774562462097994,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-4-1",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.0798
+      },
+      "dst": {
+        "nodeName": "Access-SW-5",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.2328
+      }
     },
     {
       "id": "edge-23",
-      "source": "node-20",
-      "target": "node-18",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.9030521246544341,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-4-2",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.101
+      },
+      "dst": {
+        "nodeName": "Access-SW-5",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.278
+      }
     },
     {
       "id": "edge-24",
-      "source": "node-21",
-      "target": "node-4",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 10000,
-      "utilization": 0.11922463979344089,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Access-SW-6",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.6357
+      },
+      "dst": {
+        "nodeName": "Dist-SW-3",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.3648
+      }
     },
     {
       "id": "edge-25",
-      "source": "node-22",
-      "target": "node-21",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.6384480419048871,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-5-1",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.3702
+      },
+      "dst": {
+        "nodeName": "Access-SW-6",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.2095
+      }
     },
     {
       "id": "edge-26",
-      "source": "node-23",
-      "target": "node-21",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.2178671017963998,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-5-2",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.267
+      },
+      "dst": {
+        "nodeName": "Access-SW-6",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.9367
+      }
     },
     {
       "id": "edge-27",
-      "source": "node-24",
-      "target": "node-5",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 10000,
-      "utilization": 0.21022354443402658,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Access-SW-7",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.648
+      },
+      "dst": {
+        "nodeName": "Dist-SW-4",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.6091
+      }
     },
     {
       "id": "edge-28",
-      "source": "node-25",
-      "target": "node-24",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.9525354074992569,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-6-1",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.1711
+      },
+      "dst": {
+        "nodeName": "Access-SW-7",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.7291
+      }
     },
     {
       "id": "edge-29",
-      "source": "node-26",
-      "target": "node-24",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.534822135844838,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-6-2",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.1634
+      },
+      "dst": {
+        "nodeName": "Access-SW-7",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.3795
+      }
     },
     {
       "id": "edge-30",
-      "source": "node-27",
-      "target": "node-5",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 10000,
-      "utilization": 0.23139816974366645,
-      "protocol": "fiber",
-      "status": "up"
+      "src": {
+        "nodeName": "Access-SW-8",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.9895
+      },
+      "dst": {
+        "nodeName": "Dist-SW-4",
+        "bandwidth": 10.0,
+        "status": "up",
+        "utilizationOut": 0.64
+      }
     },
     {
       "id": "edge-31",
-      "source": "node-28",
-      "target": "node-27",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.2525747409817989,
-      "protocol": "ethernet",
-      "status": "up"
+      "src": {
+        "nodeName": "Host-7-1",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.5569
+      },
+      "dst": {
+        "nodeName": "Access-SW-8",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.6846
+      }
     },
     {
       "id": "edge-32",
-      "source": "node-29",
-      "target": "node-27",
-      "sourcePort": "Gi0/1",
-      "targetPort": "Gi0/2",
-      "bandwidth": 1000,
-      "utilization": 0.2256829350601529,
-      "protocol": "ethernet",
-      "status": "up"
-    }
-  ],
-  "groups": [
-    {
-      "id": "g-core",
-      "label": "Core",
-      "type": "subnet"
-    },
-    {
-      "id": "g-dist-0",
-      "label": "Dist-VLAN100",
-      "type": "vlan"
-    },
-    {
-      "id": "g-dist-1",
-      "label": "Dist-VLAN101",
-      "type": "vlan"
-    },
-    {
-      "id": "g-dist-2",
-      "label": "Dist-VLAN102",
-      "type": "vlan"
-    },
-    {
-      "id": "g-dist-3",
-      "label": "Dist-VLAN103",
-      "type": "vlan"
+      "src": {
+        "nodeName": "Host-7-2",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.8429
+      },
+      "dst": {
+        "nodeName": "Access-SW-8",
+        "bandwidth": 1.0,
+        "status": "up",
+        "utilizationOut": 0.776
+      }
     }
   ]
 }

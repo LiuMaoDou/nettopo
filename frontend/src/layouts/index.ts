@@ -6,11 +6,16 @@ export function getLayoutConfig(type: LayoutType): Record<string, unknown> {
     force: {
       type: 'force',
       preventOverlap: true,
-      nodeStrength: -200,
-      edgeStrength: 0.5,
-      linkDistance: 150,
-      gravity: 10,
+      nodeStrength: -300,
+      edgeStrength: 0.6,
+      linkDistance: 120,
+      gravity: 15,
+      // Runs layout computation in a Web Worker — keeps the main thread free
+      // during the simulation, which is critical for datasets with 500+ nodes.
       workerEnabled: true,
+      // Cap iterations so large graphs converge in reasonable time instead of
+      // running until alpha threshold is met (can take seconds at 1500 nodes).
+      maxIteration: 500,
     },
     dagre: {
       type: 'dagre',

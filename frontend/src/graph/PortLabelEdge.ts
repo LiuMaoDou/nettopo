@@ -35,7 +35,7 @@ class PortLabelEdge extends Line {
     const key = (this as unknown as { shapeMap: Record<string, unknown> }).shapeMap?.key;
     if (!key) return;
 
-    const baseFontSize   = 9;
+    const baseFontSize   = 11;
     const baseFill       = '#94a3b8';
     const bgFill         = '#0f172a';
     const bgOpacity      = 0.78;

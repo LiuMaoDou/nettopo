@@ -1,6 +1,4 @@
-import type {
-  TopologyData, TopoNode, TopoEdge, TopoGroup, DeviceType
-} from '../types/topo';
+import type { TopologyData, TopoNode, TopoEdge, DeviceType } from '../types/topo';
 
 /**
  * 生成三层网络拓扑模拟数据
@@ -20,64 +18,47 @@ export function generateMockTopology(
   const c = config[scale];
   const nodes: TopoNode[] = [];
   const edges: TopoEdge[] = [];
-  const groups: TopoGroup[] = [];
   let nodeIdx = 0;
   let edgeIdx = 0;
 
   // --- Helper ---
-  const makeNode = (
-    type: DeviceType, label: string, group: string, ip: string
-  ): TopoNode => ({
+  const makeNode = (type: DeviceType, nodeName: string, group: string): TopoNode => ({
     id: `node-${nodeIdx++}`,
-    label,
+    nodeName,
     type,
-    ip,
     status: Math.random() > 0.05 ? 'up' : 'down',
     group,
-    interfaces: [],
   });
 
-  const makeEdge = (
-    src: string, dst: string, bw: number
-  ): TopoEdge => ({
+  const makeEdge = (srcName: string, dstName: string, bw: number): TopoEdge => ({
     id: `edge-${edgeIdx++}`,
-    source: src,
-    target: dst,
-    sourcePort: 'Gi0/1',
-    targetPort: 'Gi0/2',
-    bandwidth: bw,
-    utilizationOut: Math.random(),
-    utilizationIn:  Math.random(),
-    protocol: bw >= 10000 ? 'fiber' : 'ethernet',
-    status: 'up',
+    src: { nodeName: srcName, bandwidth: bw, status: 'up', utilizationOut: Math.random() },
+    dst: { nodeName: dstName, bandwidth: bw, status: 'up', utilizationOut: Math.random() },
   });
 
   // --- Core 层 ---
-  groups.push({ id: 'g-core', label: 'Core', type: 'subnet' });
   const coreNodes: TopoNode[] = [];
   for (let i = 0; i < c.coreCount; i++) {
-    const n = makeNode('router', `Core-${i+1}`, 'g-core', `10.0.0.${i+1}`);
+    const n = makeNode('router', `Core-${i+1}`, 'Core');
     coreNodes.push(n);
     nodes.push(n);
   }
   // Core 全互联
   for (let i = 0; i < coreNodes.length; i++) {
     for (let j = i + 1; j < coreNodes.length; j++) {
-      edges.push(makeEdge(coreNodes[i].id, coreNodes[j].id, 100000));
+      edges.push(makeEdge(coreNodes[i].nodeName, coreNodes[j].nodeName, 100));
     }
   }
 
   // --- Distribution 层 ---
   const distNodes: TopoNode[] = [];
   for (let i = 0; i < c.distCount; i++) {
-    const gid = `g-dist-${i}`;
-    groups.push({ id: gid, label: `Dist-VLAN${100+i}`, type: 'vlan' });
-    const n = makeNode('switch', `Dist-SW-${i+1}`, gid, `10.1.${i}.1`);
+    const group = `Dist-VLAN${100 + i}`;
+    const n = makeNode('switch', `Dist-SW-${i+1}`, group);
     distNodes.push(n);
     nodes.push(n);
-    // 每个 Dist 连接所有 Core
     for (const core of coreNodes) {
-      edges.push(makeEdge(n.id, core.id, 40000));
+      edges.push(makeEdge(n.nodeName, core.nodeName, 40));
     }
   }
 
@@ -85,30 +66,24 @@ export function generateMockTopology(
   let accessIdx = 0;
   for (let d = 0; d < distNodes.length; d++) {
     for (let a = 0; a < c.accessPerDist; a++) {
-      const gid = distNodes[d].group!;
-      const sw = makeNode(
-        'switch',
-        `Access-SW-${accessIdx+1}`,
-        gid,
-        `10.1.${d}.${10+a}`
-      );
+      const group = distNodes[d].group!;
+      const sw = makeNode('switch', `Access-SW-${accessIdx+1}`, group);
       nodes.push(sw);
-      edges.push(makeEdge(sw.id, distNodes[d].id, 10000));
+      edges.push(makeEdge(sw.nodeName, distNodes[d].nodeName, 10));
 
       // --- Endpoint 层 ---
       for (let e = 0; e < c.endpointsPerAccess; e++) {
         const ep = makeNode(
           Math.random() > 0.3 ? 'endpoint' : 'server',
           `Host-${accessIdx}-${e+1}`,
-          gid,
-          `10.1.${d}.${100 + a * 20 + e}`
+          group
         );
         nodes.push(ep);
-        edges.push(makeEdge(ep.id, sw.id, 1000));
+        edges.push(makeEdge(ep.nodeName, sw.nodeName, 1));
       }
       accessIdx++;
     }
   }
 
-  return { nodes, edges, groups };
+  return { nodes, edges };
 }
