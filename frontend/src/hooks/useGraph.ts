@@ -1,7 +1,8 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { Graph } from '@antv/g6';
 import type { LayoutOptions } from '@antv/g6';
-import type { TopologyData, LayoutType } from '../types/topo';
+import { Renderer as WebGLRenderer } from '@antv/g-webgl';
+import type { TopologyData, LayoutType, RoutingResult } from '../types/topo';
 import { getLayoutConfig } from '../layouts';
 import { graphRegistry } from '../store/graphRegistry';
 import { registerPortLabelEdge } from '../graph/PortLabelEdge';
@@ -45,6 +46,8 @@ const BG = {
 } as const;
 
 // ─── LOD (Level of Detail) thresholds ────────────────────────────────────────
+/** Node count at which the renderer automatically switches from Canvas to WebGL */
+export const WEBGL_NODE_THRESHOLD = 1000;
 /** Hide edge port labels (start/end) when nodeCount exceeds this */
 const LOD_NO_PORT_LABELS = 300;
 /** Also hide edge center bandwidth labels when nodeCount exceeds this */
@@ -63,6 +66,22 @@ interface LodEdgeEntry {
   end:    string | undefined;
 }
 
+/** Per-edge cost values from the active protocol config (srcCost / dstCost or srcMetric / dstMetric) */
+export interface EdgeCostEntry { src: number; dst: number; }
+
+/** Style applied to path edges in P2P mode — forward direction (arrow at target end) */
+const P2P_ARROW_FWD: Record<string, unknown> = {
+  endArrow: true, endArrowFill: '#f59e0b', endArrowStroke: '#f59e0b', endArrowSize: 10,
+  startArrow: false,
+};
+/** Same, backward direction (path traverses edge target→source, so arrow at source end) */
+const P2P_ARROW_BWD: Record<string, unknown> = {
+  startArrow: true, startArrowFill: '#f59e0b', startArrowStroke: '#f59e0b', startArrowSize: 10,
+  endArrow: false,
+};
+/** Restore to no-arrow state */
+const P2P_ARROW_CLEAR: Record<string, unknown> = { endArrow: false, startArrow: false };
+
 /**
  * Hook for managing a G6 Graph instance lifecycle.
  * The active graph is also registered in graphRegistry for cross-component access.
@@ -76,6 +95,59 @@ export function useGraph(containerId: string) {
   const lodEdgesRef = useRef<Map<string, LodEdgeEntry>>(new Map());
   // Track current LOD visibility state to avoid redundant updateData calls
   const lodStateRef = useRef({ nodeLabels: true, edgeLabels: true });
+
+  // Route-pick markers (right-click A/B selection)
+  const pickSourceIdRef = useRef<string | null>(null);
+  const pickDestIdRef   = useRef<string | null>(null);
+  // Per-node routing state (highlight/dim/[]) — used to re-apply pick markers without losing routing state
+  const nodeRoutingStateRef = useRef<Map<string, string[]>>(new Map());
+  // Edges that currently have P2P arrows — tracked so they can be restored on clear
+  const p2pArrowEdgeIdsRef  = useRef<string[]>([]);
+
+  // Tracks which renderer is currently active so TopologyCanvas can detect switches
+  const rendererTypeRef = useRef<'canvas' | 'webgl'>('canvas');
+
+  // Cost label data and visibility state
+  const costDataRef   = useRef<Map<string, EdgeCostEntry>>(new Map());
+  const showCostRef   = useRef(false);
+  // Mirror of the store's showPortLabels — kept in sync by setPortLabelsVisible()
+  const showPortRef   = useRef(true);
+
+  /**
+   * Central edge-label refresh.
+   * Rebuilds all four endpoint label properties for every edge,
+   * respecting zoom LOD, port-label toggle, and cost-label toggle.
+   *
+   * Port labels (startLabelText / endLabelText) — gray, above the edge line.
+   * Cost badges (costStartLabelText / costEndLabelText) — amber, below the edge line.
+   *
+   * Does NOT call draw() — callers must do so.
+   */
+  const refreshEdgeLabels = useCallback(() => {
+    const graph = graphRef.current;
+    if (!graph || !lodEdgesRef.current.size) return;
+
+    const showEdgeLOD = lodStateRef.current.edgeLabels;
+    const showPort    = showPortRef.current;
+    const showCost    = showCostRef.current;
+
+    const edgeUpdates: { id: string; style: Record<string, unknown> }[] = [];
+    lodEdgesRef.current.forEach((entry, id) => {
+      const cost = costDataRef.current.get(id);
+      edgeUpdates.push({ id, style: {
+        // Center bandwidth label
+        labelText:           showEdgeLOD ? entry.center : undefined,
+        // Port labels (interface + util) — above edge, gray
+        startLabelText:      showEdgeLOD && showPort ? entry.start : undefined,
+        endLabelText:        showEdgeLOD && showPort ? entry.end   : undefined,
+        // Cost badges — below edge, amber (rendered by PortLabelEdge)
+        costStartLabelText:  showEdgeLOD && showCost && cost !== undefined ? `c${cost.src}` : undefined,
+        costEndLabelText:    showEdgeLOD && showCost && cost !== undefined ? `c${cost.dst}` : undefined,
+      }});
+    });
+
+    graph.updateData({ edges: edgeUpdates });
+  }, []);
 
   /**
    * Apply zoom-based label visibility.
@@ -94,28 +166,20 @@ export function useGraph(containerId: string) {
     if (showNodeLabels === prev.nodeLabels && showEdgeLabels === prev.edgeLabels) return;
     lodStateRef.current = { nodeLabels: showNodeLabels, edgeLabels: showEdgeLabels };
 
-    // Build batched node style updates
+    // Node label updates
     const nodeUpdates: { id: string; style: Record<string, unknown> }[] = [];
     lodNodesRef.current.forEach((entry, id) => {
-      // Empty string tells G6 to hide the label shape (same check as !labelText)
       nodeUpdates.push({ id, style: { labelText: showNodeLabels ? entry.label : '' } });
     });
 
-    // Build batched edge style updates
-    const edgeUpdates: { id: string; style: Record<string, unknown> }[] = [];
-    lodEdgesRef.current.forEach((entry, id) => {
-      edgeUpdates.push({ id, style: {
-        labelText:      showEdgeLabels ? entry.center : undefined,
-        startLabelText: showEdgeLabels ? entry.start  : undefined,
-        endLabelText:   showEdgeLabels ? entry.end    : undefined,
-      }});
-    });
-
-    if (nodeUpdates.length || edgeUpdates.length) {
-      graph.updateData({ nodes: nodeUpdates, edges: edgeUpdates });
-      graph.draw();
+    if (nodeUpdates.length) {
+      graph.updateData({ nodes: nodeUpdates });
     }
-  }, []);
+
+    // Edge label updates (center + endpoints with port/cost) via shared helper
+    refreshEdgeLabels();
+    graph.draw();
+  }, [refreshEdgeLabels]);
 
   /**
    * Initialize (or re-initialize) the G6 graph.
@@ -125,15 +189,17 @@ export function useGraph(containerId: string) {
    * causes G6 to skip rendering labels for ALL nodes (it checks !labelText).
    * Set labelText per-node in loadData instead.
    */
-  const initGraph = useCallback(() => {
+  const initGraph = useCallback((rendererType: 'canvas' | 'webgl' = 'canvas') => {
     clearTimeout(zoomTimerRef.current);
     if (graphRef.current) graphRef.current.destroy();
 
+    rendererTypeRef.current = rendererType;
     registerPortLabelEdge();
 
     const graph = new Graph({
       container: containerId,
       autoFit: 'view',
+      renderer: rendererType === 'webgl' ? () => new WebGLRenderer() : undefined,
       // Cap pixel ratio: retina screens would otherwise render at 2–3×,
       // multiplying canvas pixels and fill/stroke ops for every element.
       devicePixelRatio: Math.min(window.devicePixelRatio, 1.5),
@@ -157,10 +223,14 @@ export function useGraph(containerId: string) {
           labelBackgroundPadding: BG.backgroundPadding,
         },
         state: {
-          selected:  { lineWidth: 3, stroke: '#3b82f6' },
-          highlight: { lineWidth: 3, stroke: '#f59e0b' },
-          dim:       { fillOpacity: 0.12, strokeOpacity: 0.12, labelOpacity: 0.1, iconOpacity: 0.12 },
-        },
+          selected:       { lineWidth: 3, stroke: '#3b82f6' },
+          highlight:      { lineWidth: 3, stroke: '#f59e0b' },
+          dim:            { fillOpacity: 0.12, strokeOpacity: 0.12, labelOpacity: 0.1, iconOpacity: 0.12 },
+          // Route-pick markers (right-click A/B); applied AFTER routing states so they win
+          // Cyan for source A (avoids conflict with status-up green #52c41a)
+          'route-source': { lineWidth: 3, stroke: '#06b6d4', fill: '#082f49' },
+          'route-dest':   { lineWidth: 3, stroke: '#ef4444', fill: '#2d0b0b' },
+        } as Record<string, object>,
       },
       edge: {
         type: 'port-label-edge',
@@ -228,6 +298,13 @@ export function useGraph(containerId: string) {
   const loadData = useCallback((data: TopologyData) => {
     const graph = graphRef.current;
     if (!graph) return;
+
+    // New topology — reset all derived state
+    nodeRoutingStateRef.current.clear();
+    p2pArrowEdgeIdsRef.current = [];
+    pickSourceIdRef.current = null;
+    pickDestIdRef.current = null;
+    costDataRef.current = new Map(); // cost data invalidated by topology change
 
     const nodeCount = data.nodes.length;
 
@@ -391,29 +468,207 @@ export function useGraph(containerId: string) {
   }, []);
 
   /**
-   * Show or hide port labels (startLabelText / endLabelText) on all edges.
-   * Respects the existing LOD zoom state — when re-showing, only restores
-   * labels if the current zoom level is above the edge-label threshold.
+   * Show or hide port labels (interface + utilisation) on all edge endpoints.
+   * Respects zoom LOD and the current cost-label toggle.
    */
   const setPortLabelsVisible = useCallback((visible: boolean) => {
     const graph = graphRef.current;
     if (!graph) return;
+    showPortRef.current = visible;
+    refreshEdgeLabels();
+    graph.draw();
+  }, [refreshEdgeLabels]);
 
-    const showEdgeLabels = lodStateRef.current.edgeLabels;
-    const edgeUpdates: { id: string; style: Record<string, unknown> }[] = [];
-
-    lodEdgesRef.current.forEach((entry, id) => {
-      edgeUpdates.push({ id, style: {
-        startLabelText: visible && showEdgeLabels ? entry.start : undefined,
-        endLabelText:   visible && showEdgeLabels ? entry.end   : undefined,
-      }});
-    });
-
-    if (edgeUpdates.length) {
-      graph.updateData({ edges: edgeUpdates });
+  /**
+   * Update which cost values are shown on edge endpoints.
+   * @param visible  - whether the cost badge (e.g. "c10") should be shown
+   * @param costMap  - edgeId → { src, dst } costs; pass null to clear all costs
+   */
+  const applyCostLabels = useCallback(
+    (visible: boolean, costMap: Map<string, EdgeCostEntry> | null) => {
+      const graph = graphRef.current;
+      if (!graph) return;
+      showCostRef.current    = visible;
+      costDataRef.current    = costMap ?? new Map();
+      refreshEdgeLabels();
       graph.draw();
-    }
-  }, []);
+    },
+    [refreshEdgeLabels],
+  );
+
+  /**
+   * Highlight a single point-to-point path (subset of SPT).
+   * pathEdgeIds: edges on this path; pathNodeIds: topo node ids on this path.
+   * Everything else is dimmed.
+   */
+  const highlightPath = useCallback(
+    (pathEdgeIds: string[], pathNodeIds: string[], data: TopologyData | null) => {
+      const graph = graphRef.current;
+      if (!graph || !data) return;
+
+      const edgeSet = new Set(pathEdgeIds);
+      const nodeSet = new Set(pathNodeIds);
+
+      data.nodes.forEach((n) => {
+        graph.setElementState(n.id, nodeSet.has(n.id) ? ['highlight'] : ['dim']);
+      });
+      data.edges.forEach((e) => {
+        graph.setElementState(e.id, edgeSet.has(e.id) ? ['highlight'] : ['dim']);
+      });
+    },
+    [],
+  );
+
+  /**
+   * Highlight routing result on the canvas.
+   *
+   * - When `p2pOverride` is provided (P2P mode): only highlight the specific
+   *   A→B path using the pre-computed topo IDs; adds directional arrows; dims everything else.
+   * - When `p2pOverride` is null/undefined (SPT mode): highlight the full SPT.
+   * - When `result` is null: clear all routing highlight, restore node labels, remove arrows.
+   *
+   * In all cases, route-pick markers (A/B right-click selections) are preserved on top of
+   * whatever routing state is set.
+   */
+  const highlightRoutingResult = useCallback(
+    (
+      result: RoutingResult | null,
+      data: TopologyData | null,
+      p2pOverride?: { pathNodeTopoIds: string[]; pathEdgeIds: string[] } | null,
+    ) => {
+      const graph = graphRef.current;
+      if (!graph || !data) return;
+
+      const srcPick = pickSourceIdRef.current;
+      const dstPick = pickDestIdRef.current;
+
+      /** Append route-pick states (route-source / route-dest) after routing states so they win. */
+      const withPickStates = (nodeId: string, base: string[]): string[] => [
+        ...base,
+        ...(nodeId === srcPick ? ['route-source'] : []),
+        ...(nodeId === dstPick ? ['route-dest'] : []),
+      ];
+
+      /** Restore arrow-free style on edges that previously had P2P arrows. */
+      const clearArrows = () => {
+        const prev = p2pArrowEdgeIdsRef.current;
+        if (!prev.length) return;
+        graph.updateData({ edges: prev.map((id) => ({ id, style: P2P_ARROW_CLEAR })) });
+        p2pArrowEdgeIdsRef.current = [];
+      };
+
+      if (!result) {
+        nodeRoutingStateRef.current.clear();
+        clearArrows();
+        const nodeUpdates: { id: string; style: Record<string, unknown> }[] = [];
+        data.nodes.forEach((n) => {
+          nodeRoutingStateRef.current.set(n.id, []);
+          graph.setElementState(n.id, withPickStates(n.id, []));
+          nodeUpdates.push({ id: n.id, style: { labelText: n.nodeName } });
+        });
+        data.edges.forEach((e) => graph.setElementState(e.id, []));
+        graph.updateData({ nodes: nodeUpdates });
+        graph.draw();
+        return;
+      }
+
+      if (p2pOverride) {
+        // P2P mode: highlight only the A→B path + directional arrows
+        const pathNodeSet = new Set(p2pOverride.pathNodeTopoIds);
+        const pathEdgeSet = new Set(p2pOverride.pathEdgeIds);
+
+        // Build a nodeName→topoId lookup to determine edge traversal direction
+        const nodeNameToId = new Map<string, string>();
+        data.nodes.forEach((n) => nodeNameToId.set(n.nodeName, n.id));
+
+        const nodeUpdates: { id: string; style: Record<string, unknown> }[] = [];
+        data.nodes.forEach((n) => {
+          const routingStates = pathNodeSet.has(n.id) ? ['highlight'] : ['dim'];
+          nodeRoutingStateRef.current.set(n.id, routingStates);
+          graph.setElementState(n.id, withPickStates(n.id, routingStates));
+          nodeUpdates.push({ id: n.id, style: { labelText: n.nodeName } });
+        });
+        data.edges.forEach((e) => {
+          graph.setElementState(e.id, pathEdgeSet.has(e.id) ? ['highlight'] : ['dim']);
+        });
+
+        // Restore previous arrows then add directional arrows on new path
+        clearArrows();
+        const arrowUpdates = p2pOverride.pathEdgeIds.map((eid, i) => {
+          const fromNodeId = p2pOverride.pathNodeTopoIds[i];
+          const edge = data.edges.find((e) => e.id === eid);
+          const edgeSrcId = edge ? nodeNameToId.get(edge.src.nodeName) : undefined;
+          const isForward = edgeSrcId === fromNodeId;
+          return { id: eid, style: isForward ? P2P_ARROW_FWD : P2P_ARROW_BWD };
+        });
+        p2pArrowEdgeIdsRef.current = [...p2pOverride.pathEdgeIds];
+
+        graph.updateData({ nodes: nodeUpdates, edges: arrowUpdates });
+        graph.draw();
+        return;
+      }
+
+      // SPT mode: highlight all reachable nodes and SPT edges, show cost labels
+      clearArrows();
+      const sptEdgeSet = new Set(result.sptEdgeIds);
+      const reachableNodeSet = new Set(result.nodeIds);
+
+      const nodeUpdates: { id: string; style: Record<string, unknown> }[] = [];
+      data.nodes.forEach((n) => {
+        const isReachable = reachableNodeSet.has(n.id);
+        const routingStates = isReachable ? ['highlight'] : ['dim'];
+        nodeRoutingStateRef.current.set(n.id, routingStates);
+        graph.setElementState(n.id, withPickStates(n.id, routingStates));
+        const cost = result.nodeIdToCost[n.id];
+        const costLabel = cost !== undefined ? ` (cost ${cost})` : '';
+        nodeUpdates.push({ id: n.id, style: { labelText: `${n.nodeName}${isReachable ? costLabel : ''}` } });
+      });
+
+      data.edges.forEach((e) => {
+        graph.setElementState(e.id, sptEdgeSet.has(e.id) ? ['highlight'] : ['dim']);
+      });
+
+      if (nodeUpdates.length) {
+        graph.updateData({ nodes: nodeUpdates });
+        graph.draw();
+      }
+    },
+    [],
+  );
+
+  /**
+   * Mark a node as route-pick source (A, green) or destination (B, red).
+   * The pick state is layered on top of any active routing highlight state.
+   * Pass null to clear a marker.
+   */
+  const setRoutePickMarkers = useCallback(
+    (sourceId: string | null, destId: string | null) => {
+      const graph = graphRef.current;
+      if (!graph) return;
+
+      const prevSource = pickSourceIdRef.current;
+      const prevDest   = pickDestIdRef.current;
+      pickSourceIdRef.current = sourceId;
+      pickDestIdRef.current   = destId;
+
+      // Collect affected node IDs (old + new markers)
+      const affected = new Set<string>(
+        [prevSource, prevDest, sourceId, destId].filter((id): id is string => !!id),
+      );
+
+      affected.forEach((nodeId) => {
+        const routing = nodeRoutingStateRef.current.get(nodeId) ?? [];
+        const pick = [
+          ...(nodeId === sourceId ? ['route-source'] : []),
+          ...(nodeId === destId   ? ['route-dest']   : []),
+        ];
+        graph.setElementState(nodeId, [...routing, ...pick]);
+      });
+
+      graph.draw();
+    },
+    [],
+  );
 
   useEffect(() => {
     return () => {
@@ -424,5 +679,5 @@ export function useGraph(containerId: string) {
     };
   }, []);
 
-  return { graphRef, initGraph, loadData, changeLayout, applySearch, setPortLabelsVisible };
+  return { graphRef, rendererTypeRef, initGraph, loadData, changeLayout, applySearch, setPortLabelsVisible, applyCostLabels, highlightRoutingResult, highlightPath, setRoutePickMarkers };
 }
