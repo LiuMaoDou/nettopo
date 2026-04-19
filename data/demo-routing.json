@@ -1,0 +1,42 @@
+{
+  "nodes": [
+    { "nodeName": "R1", "type": "router", "group": "Core",   "status": "up" },
+    { "nodeName": "R2", "type": "router", "group": "Core",   "status": "up" },
+    { "nodeName": "R3", "type": "router", "group": "Edge",   "status": "up" },
+    { "nodeName": "R4", "type": "router", "group": "Core",   "status": "up" },
+    { "nodeName": "R5", "type": "router", "group": "Edge",   "status": "up" },
+    { "nodeName": "R6", "type": "router", "group": "Edge",   "status": "up" }
+  ],
+  "edges": [
+    {
+      "id": "link-r1-r2",
+      "src": { "nodeName": "R1", "interface": "Gi0/0", "bandwidth": 10 },
+      "dst": { "nodeName": "R2", "interface": "Gi0/0", "bandwidth": 10 }
+    },
+    {
+      "id": "link-r1-r3",
+      "src": { "nodeName": "R1", "interface": "Gi0/1", "bandwidth": 1 },
+      "dst": { "nodeName": "R3", "interface": "Gi0/0", "bandwidth": 1 }
+    },
+    {
+      "id": "link-r2-r4",
+      "src": { "nodeName": "R2", "interface": "Gi0/1", "bandwidth": 10 },
+      "dst": { "nodeName": "R4", "interface": "Gi0/0", "bandwidth": 10 }
+    },
+    {
+      "id": "link-r3-r5",
+      "src": { "nodeName": "R3", "interface": "Gi0/1", "bandwidth": 1 },
+      "dst": { "nodeName": "R5", "interface": "Gi0/0", "bandwidth": 1 }
+    },
+    {
+      "id": "link-r5-r4",
+      "src": { "nodeName": "R5", "interface": "Gi0/1", "bandwidth": 1 },
+      "dst": { "nodeName": "R4", "interface": "Gi0/1", "bandwidth": 1 }
+    },
+    {
+      "id": "link-r5-r6",
+      "src": { "nodeName": "R5", "interface": "Gi0/2", "bandwidth": 1 },
+      "dst": { "nodeName": "R6", "interface": "Gi0/0", "bandwidth": 1 }
+    }
+  ]
+}

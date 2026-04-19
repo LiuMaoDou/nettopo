@@ -1,0 +1,47 @@
+{
+  "protocol": "isis",
+  "routers": [
+    {
+      "nodeName": "R1", "systemId": "0000.0000.0001", "level": "L2",
+      "interfaces": [
+        { "name": "Gi0/0", "metric": 10, "circuitLevel": "L2" },
+        { "name": "Gi0/1", "metric": 50, "circuitLevel": "L2" }
+      ]
+    },
+    {
+      "nodeName": "R2", "systemId": "0000.0000.0002", "level": "L1L2",
+      "interfaces": [
+        { "name": "Gi0/0", "metric": 10, "circuitLevel": "L2" },
+        { "name": "Gi0/1", "metric": 10, "circuitLevel": "L2" }
+      ]
+    },
+    {
+      "nodeName": "R3", "systemId": "0000.0000.0003", "level": "L1L2",
+      "interfaces": [
+        { "name": "Gi0/0", "metric": 50, "circuitLevel": "L2" },
+        { "name": "Gi0/1", "metric": 10, "circuitLevel": "L1" }
+      ]
+    },
+    {
+      "nodeName": "R4", "systemId": "0000.0000.0004", "level": "L2",
+      "interfaces": [
+        { "name": "Gi0/0", "metric": 10, "circuitLevel": "L2" },
+        { "name": "Gi0/1", "metric": 100,"circuitLevel": "L1" }
+      ]
+    },
+    {
+      "nodeName": "R5", "systemId": "0000.0000.0005", "level": "L1",
+      "interfaces": [
+        { "name": "Gi0/0", "metric": 10, "circuitLevel": "L1" },
+        { "name": "Gi0/1", "metric": 100,"circuitLevel": "L1" },
+        { "name": "Gi0/2", "metric": 10, "circuitLevel": "L1" }
+      ]
+    },
+    {
+      "nodeName": "R6", "systemId": "0000.0000.0006", "level": "L1",
+      "interfaces": [
+        { "name": "Gi0/0", "metric": 10, "circuitLevel": "L1" }
+      ]
+    }
+  ]
+}

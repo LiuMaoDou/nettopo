@@ -1,0 +1,47 @@
+{
+  "protocol": "ospf",
+  "routers": [
+    {
+      "nodeName": "R1", "routerId": "1.1.1.1", "areas": ["0.0.0.0"],
+      "interfaces": [
+        { "name": "Gi0/0", "cost": 10,  "area": "0.0.0.0" },
+        { "name": "Gi0/1", "cost": 50,  "area": "0.0.0.0" }
+      ]
+    },
+    {
+      "nodeName": "R2", "routerId": "2.2.2.2", "areas": ["0.0.0.0"],
+      "interfaces": [
+        { "name": "Gi0/0", "cost": 10,  "area": "0.0.0.0" },
+        { "name": "Gi0/1", "cost": 10,  "area": "0.0.0.0" }
+      ]
+    },
+    {
+      "nodeName": "R3", "routerId": "3.3.3.3", "areas": ["0.0.0.0"],
+      "interfaces": [
+        { "name": "Gi0/0", "cost": 50,  "area": "0.0.0.0" },
+        { "name": "Gi0/1", "cost": 10,  "area": "0.0.0.0" }
+      ]
+    },
+    {
+      "nodeName": "R4", "routerId": "4.4.4.4", "areas": ["0.0.0.0"],
+      "interfaces": [
+        { "name": "Gi0/0", "cost": 10,  "area": "0.0.0.0" },
+        { "name": "Gi0/1", "cost": 100, "area": "0.0.0.0" }
+      ]
+    },
+    {
+      "nodeName": "R5", "routerId": "5.5.5.5", "areas": ["0.0.0.0"],
+      "interfaces": [
+        { "name": "Gi0/0", "cost": 10,  "area": "0.0.0.0" },
+        { "name": "Gi0/1", "cost": 100, "area": "0.0.0.0" },
+        { "name": "Gi0/2", "cost": 10,  "area": "0.0.0.0" }
+      ]
+    },
+    {
+      "nodeName": "R6", "routerId": "6.6.6.6", "areas": ["0.0.0.0"],
+      "interfaces": [
+        { "name": "Gi0/0", "cost": 10,  "area": "0.0.0.0" }
+      ]
+    }
+  ]
+}

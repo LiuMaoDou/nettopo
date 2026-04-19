@@ -1,0 +1,19 @@
+{
+  "protocol": "ospf",
+  "routers": [
+    { "nodeName": "Core-1",      "routerId": "1.1.1.1", "areas": ["0.0.0.0"] },
+    { "nodeName": "Core-2",      "routerId": "1.1.1.2", "areas": ["0.0.0.0"] },
+    { "nodeName": "Dist-SW-1",   "routerId": "2.2.2.1", "areas": ["0.0.0.0", "0.0.0.1"] },
+    { "nodeName": "Dist-SW-2",   "routerId": "2.2.2.2", "areas": ["0.0.0.0", "0.0.0.2"] },
+    { "nodeName": "Dist-SW-3",   "routerId": "2.2.2.3", "areas": ["0.0.0.0", "0.0.0.3"] },
+    { "nodeName": "Dist-SW-4",   "routerId": "2.2.2.4", "areas": ["0.0.0.0", "0.0.0.4"] },
+    { "nodeName": "Access-SW-1", "routerId": "3.3.3.1", "areas": ["0.0.0.1"] },
+    { "nodeName": "Access-SW-2", "routerId": "3.3.3.2", "areas": ["0.0.0.1"] },
+    { "nodeName": "Access-SW-3", "routerId": "3.3.3.3", "areas": ["0.0.0.2"] },
+    { "nodeName": "Access-SW-4", "routerId": "3.3.3.4", "areas": ["0.0.0.2"] },
+    { "nodeName": "Access-SW-5", "routerId": "3.3.3.5", "areas": ["0.0.0.3"] },
+    { "nodeName": "Access-SW-6", "routerId": "3.3.3.6", "areas": ["0.0.0.3"] },
+    { "nodeName": "Access-SW-7", "routerId": "3.3.3.7", "areas": ["0.0.0.4"] },
+    { "nodeName": "Access-SW-8", "routerId": "3.3.3.8", "areas": ["0.0.0.4"] }
+  ]
+}

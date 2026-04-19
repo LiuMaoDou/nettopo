@@ -5,11 +5,15 @@ import { LAYOUT_OPTIONS } from '../layouts';
 import type { LayoutType } from '../types/topo';
 import { parseJSON, parseDevicesCSV } from '../utils/dataParser';
 import { exportToPNG } from '../utils/exportGraph';
+import { generateRoutingDemo } from '../utils/mockData';
 import {
-  downloadTemplateJSON,
-  downloadTemplateDevicesCSV,
   downloadTemplateLinksCSV,
+  downloadOspfTemplate,
+  downloadIsisTemplate,
+  downloadInterfaceListTemplate,
 } from '../utils/downloadTemplate';
+import { parseInterfaceList } from '../utils/interfaceParser';
+import { parseProtocolConfig, validateConfigAgainstTopo } from '../utils/protocolParser';
 
 const DEMO_OPTIONS: { label: string; scale: 'small' | 'medium' | 'large' }[] = [
   { label: '20 台 (Small)',   scale: 'small'  },
@@ -18,8 +22,9 @@ const DEMO_OPTIONS: { label: string; scale: 'small' | 'medium' | 'large' }[] = [
 ];
 
 export default function Toolbar() {
-  const { currentLayout, setLayout, loadMockData, setTopologyData, showPortLabels, togglePortLabels } = useTopoStore();
+  const { currentLayout, setLayout, loadMockData, setTopologyData, showPortLabels, togglePortLabels, showCostLabels, toggleCostLabels, topologyData, protocolConfig, setProtocolConfig, clearRoutingResult } = useTopoStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const protocolFileInputRef = useRef<HTMLInputElement>(null);
   const demoRef = useRef<HTMLDivElement>(null);
   const [demoOpen, setDemoOpen] = useState(false);
   const [templateOpen, setTemplateOpen] = useState(false);
@@ -48,10 +53,20 @@ export default function Toolbar() {
       const content = ev.target?.result as string;
       try {
         if (file.name.endsWith('.json')) {
-          setTopologyData(parseJSON(content));
+          // 自动识别格式：平铺数组 或 { interfaces: [...] } → 接口列表推导；否则 → 标准拓扑 JSON
+          let parsed: unknown;
+          try { parsed = JSON.parse(content); } catch { parsed = null; }
+          if (
+            Array.isArray(parsed) ||
+            (parsed && typeof parsed === 'object' && Array.isArray((parsed as Record<string, unknown>).interfaces))
+          ) {
+            setTopologyData(parseInterfaceList(content));
+          } else {
+            setTopologyData(parseJSON(content));
+          }
         } else if (file.name.endsWith('.csv')) {
           const nodes = parseDevicesCSV(content);
-          setTopologyData({ nodes, edges: [], groups: [] });
+          setTopologyData({ nodes, edges: [] });
         }
       } catch (err) {
         alert(`导入失败: ${err instanceof Error ? err.message : String(err)}`);
@@ -66,6 +81,39 @@ export default function Toolbar() {
     if (graph) {
       await exportToPNG(graph as Parameters<typeof exportToPNG>[0]);
     }
+  };
+
+  const handleProtocolImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const content = ev.target?.result as string;
+      try {
+        const json = JSON.parse(content);
+        const result = parseProtocolConfig(json);
+        if (!result.data) {
+          const msgs = result.errors.map((er) => `${er.field}: ${er.message}`).join('\n');
+          alert(`协议配置解析失败:\n${msgs}`);
+          return;
+        }
+        // 交叉校验：确认 nodeName 在当前拓扑中存在
+        if (topologyData) {
+          const nodeNames = new Set(topologyData.nodes.map((n) => n.nodeName));
+          const crossErrors = validateConfigAgainstTopo(result.data, nodeNames);
+          if (crossErrors.length > 0) {
+            const msgs = crossErrors.map((er) => `${er.field}: ${er.message}`).join('\n');
+            alert(`协议配置与拓扑不匹配:\n${msgs}`);
+            return;
+          }
+        }
+        setProtocolConfig(result.data);
+      } catch (err) {
+        alert(`协议配置导入失败: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   return (
@@ -109,6 +157,19 @@ export default function Toolbar() {
                 {opt.label}
               </button>
             ))}
+            <div className="border-t border-gray-700" />
+            <button
+              onClick={() => {
+                const { topology, protocolConfig } = generateRoutingDemo();
+                setTopologyData(topology);
+                setProtocolConfig(protocolConfig);
+                clearRoutingResult();
+                setDemoOpen(false);
+              }}
+              className="w-full text-left px-4 py-2 text-sm text-indigo-400 hover:bg-gray-700 transition-colors"
+            >
+              路由演示
+            </button>
           </div>
         )}
       </div>
@@ -130,28 +191,46 @@ export default function Toolbar() {
 
         {templateOpen && (
           <div className="absolute left-0 mt-1 w-52 rounded bg-gray-800 border border-gray-600 shadow-lg overflow-hidden">
+            <div className="px-4 py-1.5 text-xs text-gray-500">拓扑</div>
             <button
-              onClick={() => { downloadTemplateJSON(); setTemplateOpen(false); }}
+              onClick={() => { downloadInterfaceListTemplate(); setTemplateOpen(false); }}
               className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
             >
-              JSON 模板
+              导入模板
               <span className="ml-1 text-gray-400 text-xs">(.json)</span>
             </button>
             <div className="border-t border-gray-700" />
-            <div className="px-4 py-1.5 text-xs text-gray-500">CSV（需两个文件）</div>
-            <button
-              onClick={() => { downloadTemplateDevicesCSV(); setTemplateOpen(false); }}
-              className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
-            >
-              设备模板
-              <span className="ml-1 text-gray-400 text-xs">(.csv)</span>
-            </button>
+            <div className="px-4 py-1.5 text-xs text-gray-500">CSV</div>
             <button
               onClick={() => { downloadTemplateLinksCSV(); setTemplateOpen(false); }}
               className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
             >
               链路模板
               <span className="ml-1 text-gray-400 text-xs">(.csv)</span>
+            </button>
+            <div className="border-t border-gray-700" />
+            <div className="px-4 py-1.5 text-xs text-gray-500">协议配置</div>
+            <button
+              onClick={() => { downloadOspfTemplate(); setTemplateOpen(false); }}
+              className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+            >
+              OSPF 模板
+              <span className="ml-1 text-gray-400 text-xs">(.json)</span>
+            </button>
+            <button
+              onClick={() => { downloadIsisTemplate(); setTemplateOpen(false); }}
+              className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+            >
+              IS-IS 模板
+              <span className="ml-1 text-gray-400 text-xs">(.json)</span>
+            </button>
+            <div className="border-t border-gray-700" />
+            <button
+              onClick={() => { setTemplateOpen(false); protocolFileInputRef.current?.click(); }}
+              className="w-full text-left px-4 py-2 text-sm text-indigo-400 hover:bg-gray-700 transition-colors"
+            >
+              导入协议配置
+              <span className="ml-1 text-gray-500 text-xs">(.json)</span>
             </button>
           </div>
         )}
@@ -184,6 +263,37 @@ export default function Toolbar() {
       >
         接口信息
       </button>
+
+      {/* Toggle cost labels — only shown when a protocol config is loaded */}
+      {protocolConfig && (
+        <button
+          onClick={toggleCostLabels}
+          title={showCostLabels ? '隐藏接口Cost' : '显示接口Cost'}
+          className={`px-3 py-1.5 rounded text-sm transition-colors ${
+            showCostLabels
+              ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+              : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+          }`}
+        >
+          接口Cost
+        </button>
+      )}
+
+      {/* Import protocol config */}
+      <button
+        onClick={() => protocolFileInputRef.current?.click()}
+        className="px-3 py-1.5 rounded bg-gray-700 text-white text-sm hover:bg-gray-600 transition-colors"
+        title="导入 OSPF / IS-IS 协议配置 JSON"
+      >
+        导入协议
+      </button>
+      <input
+        ref={protocolFileInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleProtocolImport}
+      />
 
       {/* Export PNG */}
       <button

@@ -1,0 +1,19 @@
+{
+  "protocol": "isis",
+  "routers": [
+    { "nodeName": "Core-1",      "systemId": "0000.0000.0001", "level": "L2" },
+    { "nodeName": "Core-2",      "systemId": "0000.0000.0002", "level": "L2" },
+    { "nodeName": "Dist-SW-1",   "systemId": "0000.0000.0011", "level": "L1L2" },
+    { "nodeName": "Dist-SW-2",   "systemId": "0000.0000.0012", "level": "L1L2" },
+    { "nodeName": "Dist-SW-3",   "systemId": "0000.0000.0013", "level": "L1L2" },
+    { "nodeName": "Dist-SW-4",   "systemId": "0000.0000.0014", "level": "L1L2" },
+    { "nodeName": "Access-SW-1", "systemId": "0000.0001.0001", "level": "L1" },
+    { "nodeName": "Access-SW-2", "systemId": "0000.0001.0002", "level": "L1" },
+    { "nodeName": "Access-SW-3", "systemId": "0000.0001.0003", "level": "L1" },
+    { "nodeName": "Access-SW-4", "systemId": "0000.0001.0004", "level": "L1" },
+    { "nodeName": "Access-SW-5", "systemId": "0000.0001.0005", "level": "L1" },
+    { "nodeName": "Access-SW-6", "systemId": "0000.0001.0006", "level": "L1" },
+    { "nodeName": "Access-SW-7", "systemId": "0000.0001.0007", "level": "L1" },
+    { "nodeName": "Access-SW-8", "systemId": "0000.0001.0008", "level": "L1" }
+  ]
+}

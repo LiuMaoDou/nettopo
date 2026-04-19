@@ -6,12 +6,14 @@ import { getLabelPositionStyle } from '@antv/g6/lib/utils/edge';
 import { Label } from '@antv/g6/lib/elements/shapes';
 
 /**
- * Extended edge style props: adds startLabelText / endLabelText
- * rendered near each endpoint, independent of the center label.
+ * Extended edge style props: adds startLabelText / endLabelText (port+util, above edge)
+ * and costStartLabelText / costEndLabelText (cost badge, below edge, amber colour).
  */
 export interface PortLabelEdgeStyleProps {
   startLabelText?: string;
   endLabelText?: string;
+  costStartLabelText?: string;
+  costEndLabelText?: string;
   // inherits all BaseEdgeStyleProps via Line
   [key: string]: unknown;
 }
@@ -21,9 +23,14 @@ export interface PortLabelEdgeStyleProps {
  * node (startLabelText) and one near the target node (endLabelText) —
  * in addition to the standard center label.
  */
+/** Amber colour for cost badges — distinct from the gray port labels */
+const COST_FILL = '#fbbf24';
+
 class PortLabelEdge extends Line {
   /**
-   * Override drawLabelShape to also draw source-port and target-port labels.
+   * Override drawLabelShape to also draw:
+   *  - source/target port labels (interface + util) ABOVE the edge in gray
+   *  - source/target cost badges (c10) BELOW the edge in amber
    */
   override drawLabelShape(
     attributes: Record<string, unknown>,
@@ -42,45 +49,60 @@ class PortLabelEdge extends Line {
     const bgRadius       = 3;
     const bgPadding      = [2, 5, 2, 5];
 
-    // ── Source port label (12 % from source end) ───────────────────────────
+    // ── Source port label — above edge (y = -10) ──────────────────────────
     const srcText = attributes.startLabelText as string | undefined;
     if (srcText) {
       const posStyle = getLabelPositionStyle(key, 0.22, false, 0, -10);
       this.upsert('start-label', Label, {
-        ...posStyle,
-        text:              srcText,
-        fontSize:          baseFontSize,
-        fill:              baseFill,
-        background:        true,
-        backgroundFill:    bgFill,
-        backgroundOpacity: bgOpacity,
-        backgroundRadius:  bgRadius,
-        backgroundPadding: bgPadding,
-        zIndex:            1,
+        ...posStyle, text: srcText, fontSize: baseFontSize,
+        fill: baseFill, background: true,
+        backgroundFill: bgFill, backgroundOpacity: bgOpacity,
+        backgroundRadius: bgRadius, backgroundPadding: bgPadding, zIndex: 1,
       }, container);
     } else {
-      // Remove shape if no text
       this.upsert('start-label', Label, false, container);
     }
 
-    // ── Target port label (88 % from source end = near target) ─────────────
+    // ── Target port label — above edge (y = -10) ──────────────────────────
     const dstText = attributes.endLabelText as string | undefined;
     if (dstText) {
       const posStyle = getLabelPositionStyle(key, 0.78, false, 0, -10);
       this.upsert('end-label', Label, {
-        ...posStyle,
-        text:              dstText,
-        fontSize:          baseFontSize,
-        fill:              baseFill,
-        background:        true,
-        backgroundFill:    bgFill,
-        backgroundOpacity: bgOpacity,
-        backgroundRadius:  bgRadius,
-        backgroundPadding: bgPadding,
-        zIndex:            1,
+        ...posStyle, text: dstText, fontSize: baseFontSize,
+        fill: baseFill, background: true,
+        backgroundFill: bgFill, backgroundOpacity: bgOpacity,
+        backgroundRadius: bgRadius, backgroundPadding: bgPadding, zIndex: 1,
       }, container);
     } else {
       this.upsert('end-label', Label, false, container);
+    }
+
+    // ── Source cost badge — below edge (y = +10), amber ───────────────────
+    const costSrcText = attributes.costStartLabelText as string | undefined;
+    if (costSrcText) {
+      const posStyle = getLabelPositionStyle(key, 0.22, false, 0, 10);
+      this.upsert('cost-start-label', Label, {
+        ...posStyle, text: costSrcText, fontSize: baseFontSize,
+        fill: COST_FILL, background: true,
+        backgroundFill: bgFill, backgroundOpacity: bgOpacity,
+        backgroundRadius: bgRadius, backgroundPadding: bgPadding, zIndex: 1,
+      }, container);
+    } else {
+      this.upsert('cost-start-label', Label, false, container);
+    }
+
+    // ── Target cost badge — below edge (y = +10), amber ───────────────────
+    const costDstText = attributes.costEndLabelText as string | undefined;
+    if (costDstText) {
+      const posStyle = getLabelPositionStyle(key, 0.78, false, 0, 10);
+      this.upsert('cost-end-label', Label, {
+        ...posStyle, text: costDstText, fontSize: baseFontSize,
+        fill: COST_FILL, background: true,
+        backgroundFill: bgFill, backgroundOpacity: bgOpacity,
+        backgroundRadius: bgRadius, backgroundPadding: bgPadding, zIndex: 1,
+      }, container);
+    } else {
+      this.upsert('cost-end-label', Label, false, container);
     }
   }
 }

@@ -4,3 +4,4 @@ sqlmodel>=0.0.22
 aiohttp>=3.10
 websockets>=14.0
 python-multipart>=0.0.17
+networkx>=3.0

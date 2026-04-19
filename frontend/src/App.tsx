@@ -4,10 +4,11 @@ import Toolbar from './components/Toolbar';
 import DevicePanel from './components/DevicePanel';
 import SearchBar from './components/SearchBar';
 import StatusBar from './components/StatusBar';
+import RoutingPanel from './components/RoutingPanel';
 
 function EdgeLegend() {
   return (
-    <div className="absolute bottom-10 left-4 z-10 px-3 py-2 rounded bg-gray-900 border border-gray-700 text-xs text-gray-400 space-y-1 select-none">
+    <div className="absolute bottom-10 right-4 z-10 px-3 py-2 rounded bg-gray-900 border border-gray-700 text-xs text-gray-400 space-y-1 select-none">
       <div className="text-gray-300 font-medium mb-1">链路标签说明</div>
       <div><span className="text-gray-200">Port(x%)</span> — 接口名(出方向利用率)</div>
       <div className="flex items-center gap-2 pt-0.5">
@@ -26,6 +27,7 @@ export default function App() {
       <SearchBar />
       <TopologyCanvas />
       <DevicePanel />
+      <RoutingPanel />
       <StatusBar />
       <EdgeLegend />
     </div>

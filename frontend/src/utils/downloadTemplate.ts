@@ -115,3 +115,205 @@ export function downloadTemplateDevicesCSV(): void {
 export function downloadTemplateLinksCSV(): void {
   triggerDownload(LINKS_CSV, 'topology-template-links.csv', 'text/csv');
 }
+
+// ── OSPF template ────────────────────────────────────────────────────────────
+
+const OSPF_TEMPLATE = JSON.stringify(
+  {
+    protocol: 'ospf',
+    referenceBandwidth: 100,
+    routers: [
+      {
+        nodeName: 'Core-Router-1',
+        routerId: '1.1.1.1',
+        areas: ['0.0.0.0'],
+        interfaces: [
+          { name: 'Gi0/0', cost: 10, area: '0.0.0.0' },
+          { name: 'Gi0/1', cost: 10, area: '0.0.0.0' },
+        ],
+      },
+      {
+        nodeName: 'Core-Router-2',
+        routerId: '2.2.2.2',
+        areas: ['0.0.0.0', '0.0.0.1'],
+        interfaces: [
+          { name: 'Gi0/0', cost: 10, area: '0.0.0.0' },
+          { name: 'Gi0/1', cost: 10, area: '0.0.0.1' },
+        ],
+      },
+      {
+        nodeName: 'Dist-SW-1',
+        routerId: '3.3.3.3',
+        areas: ['0.0.0.1'],
+        interfaces: [
+          { name: 'Gi0/0', cost: 10, area: '0.0.0.1' },
+        ],
+      },
+    ],
+  },
+  null,
+  2,
+);
+
+/** Download OSPF protocol config template as JSON. */
+export function downloadOspfTemplate(): void {
+  triggerDownload(OSPF_TEMPLATE, 'ospf-config-template.json', 'application/json');
+}
+
+// ── IS-IS template ────────────────────────────────────────────────────────────
+
+const ISIS_TEMPLATE = JSON.stringify(
+  {
+    protocol: 'isis',
+    defaultMetric: 10,
+    routers: [
+      {
+        nodeName: 'Core-Router-1',
+        systemId: '0000.0000.0001',
+        level: 'L2',
+        interfaces: [
+          { name: 'Gi0/0', metric: 10, circuitLevel: 'L2' },
+        ],
+      },
+      {
+        nodeName: 'Core-Router-2',
+        systemId: '0000.0000.0002',
+        level: 'L1L2',
+        interfaces: [
+          { name: 'Gi0/0', metric: 10, circuitLevel: 'L2' },
+          { name: 'Gi0/1', metric: 10, circuitLevel: 'L1' },
+        ],
+      },
+      {
+        nodeName: 'Dist-SW-1',
+        systemId: '0000.0000.0003',
+        level: 'L1',
+        interfaces: [
+          { name: 'Gi0/0', metric: 10, circuitLevel: 'L1' },
+        ],
+      },
+    ],
+  },
+  null,
+  2,
+);
+
+/** Download IS-IS protocol config template as JSON. */
+export function downloadIsisTemplate(): void {
+  triggerDownload(ISIS_TEMPLATE, 'isis-config-template.json', 'application/json');
+}
+
+// ── 导入模板 ──────────────────────────────────────────────────────────────────
+
+/**
+ * 导入模板：演示三种场景
+ *   - 双栈 /30+/127 P2P 链路（IPv4 和 IPv6 同记录，自动合并为一条边）
+ *   - 双栈 /24 广播段（自动生成 segment 节点）
+ *   - /32+/128 Loopback（自动忽略，不建边）
+ */
+const INTERFACE_LIST_TEMPLATE = JSON.stringify(
+  [
+      // ── 双栈 P2P 链路 A: Router-A <-> Router-B ───────────────────────────
+      // type/group/vendor/model 只需在该设备第一条记录里写，后续接口记录可省略
+      {
+        nodeName: 'Router-A',
+        type: 'router',
+        group: 'core',
+        vendor: 'Cisco',
+        model: 'ASR9000',
+        interface: 'Gi0/0',
+        ipv4Address: '10.0.0.1',
+        ipv4Mask: '255.255.255.252',
+        ipv6Address: '2001:db8:0:1::1',
+        ipv6Mask: '127',
+        bandwidth: 10,
+        utilizationOut: 0.45,
+        status: 'up',
+      },
+      {
+        nodeName: 'Router-B',
+        type: 'router',
+        group: 'core',
+        interface: 'Gi0/0',
+        ipv4Address: '10.0.0.2',
+        ipv4Mask: '255.255.255.252',
+        ipv6Address: '2001:db8:0:1::2',
+        ipv6Mask: '127',
+        bandwidth: 10,
+        utilizationOut: 0.32,
+        status: 'up',
+      },
+      // ── 双栈 P2P 链路 B: Router-A <-> Router-C（Router-A 设备信息已有，省略）
+      {
+        nodeName: 'Router-A',
+        interface: 'Gi0/1',
+        ipv4Address: '10.0.1.1',
+        ipv4Mask: '255.255.255.252',
+        ipv6Address: '2001:db8:0:2::1',
+        ipv6Mask: '127',
+        bandwidth: 10,
+        status: 'up',
+      },
+      {
+        nodeName: 'Router-C',
+        type: 'router',
+        group: 'distribution',
+        interface: 'Gi0/0',
+        ipv4Address: '10.0.1.2',
+        ipv4Mask: '255.255.255.252',
+        ipv6Address: '2001:db8:0:2::2',
+        ipv6Mask: '127',
+        bandwidth: 10,
+        status: 'up',
+      },
+      // ── 双栈 /24 广播段：Router-B, Router-C, Server-1 共享 ───────────────
+      {
+        nodeName: 'Router-B',
+        interface: 'Gi0/1',
+        ipv4Address: '192.168.1.1',
+        ipv4Mask: '255.255.255.0',
+        ipv6Address: '2001:db8:1::1',
+        ipv6Mask: '64',
+        bandwidth: 1,
+        status: 'up',
+      },
+      {
+        nodeName: 'Router-C',
+        interface: 'Gi0/1',
+        ipv4Address: '192.168.1.2',
+        ipv4Mask: '255.255.255.0',
+        ipv6Address: '2001:db8:1::2',
+        ipv6Mask: '64',
+        bandwidth: 1,
+        status: 'up',
+      },
+      {
+        nodeName: 'Server-1',
+        type: 'server',
+        group: 'distribution',
+        interface: 'eth0',
+        ipv4Address: '192.168.1.10',
+        ipv4Mask: '255.255.255.0',
+        ipv6Address: '2001:db8:1::10',
+        ipv6Mask: '64',
+        bandwidth: 1,
+        status: 'up',
+      },
+      // ── /32 + /128 Loopback（自动忽略，不建边）──────────────────────────
+      {
+        nodeName: 'Router-A',
+        interface: 'Lo0',
+        ipv4Address: '1.1.1.1',
+        ipv4Mask: '255.255.255.255',
+        ipv6Address: '2001:db8::1',
+        ipv6Mask: '128',
+      },
+  ],
+  null,
+  2,
+);
+
+/** Download import template as JSON. */
+export function downloadInterfaceListTemplate(): void {
+  triggerDownload(INTERFACE_LIST_TEMPLATE, 'import-template.json', 'application/json');
+}

@@ -4,7 +4,7 @@ dev-frontend:
 	cd frontend && pnpm dev
 
 dev-backend:
-	cd backend && .venv/bin/uvicorn app.main:app --reload --port 8000
+	cd backend && .venv/bin/python -m uvicorn app.main:app --reload --port 8000
 
 dev:
 	$(MAKE) -j2 dev-frontend dev-backend
